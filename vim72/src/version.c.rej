@@ -1,0 +1,14 @@
+--- src/version.c	(.../vendor/vim/current)	(revision 223)
++++ src/version.c	(.../trunk/vim)	(revision 223)
+@@ -236,6 +236,11 @@
+ #if !defined(USE_SYSTEM) && defined(UNIX)
+ 	"+fork()",
+ #endif
++#ifdef FEAT_GDB
++	"+gdb",
++#else
++	"-gdb",
++#endif
+ #ifdef FEAT_GETTEXT
+ # ifdef DYNAMIC_GETTEXT
+ 	"+gettext/dyn",

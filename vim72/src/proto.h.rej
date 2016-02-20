@@ -1,0 +1,13 @@
+--- src/proto.h	(.../vendor/vim/current)	(revision 223)
++++ src/proto.h	(.../trunk/vim)	(revision 223)
+@@ -238,6 +238,10 @@
+ #  include "if_xcmdsrv.pro"
+ # endif
+ 
++# ifdef FEAT_GDB
++#  include "gdb.pro"
++# endif
++
+ /*
+  * The perl include files pollute the namespace, therefore proto.h must be
+  * included before the perl include files.  But then CV is not defined, which

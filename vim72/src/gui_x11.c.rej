@@ -1,0 +1,102 @@
+--- src/gui_x11.c	(.../vendor/vim/current)	(revision 223)
++++ src/gui_x11.c	(.../trunk/vim)	(revision 223)
+@@ -148,6 +148,9 @@
+ #ifdef FEAT_SNIFF
+ static void gui_x11_sniff_request_cb __ARGS((XtPointer closure, int *source, XtInputId *id));
+ #endif
++#ifdef FEAT_GDB
++static void gdb_request_cb __ARGS((XtPointer closure, int *source, XtInputId *id));
++#endif
+ static void gui_x11_check_copy_area __ARGS((void));
+ #ifdef FEAT_CLIENTSERVER
+ static void gui_x11_send_event_handler __ARGS((Widget, XtPointer, XEvent *, Boolean *));
+@@ -1181,7 +1184,22 @@
+ }
+ #endif
+ 
++#ifdef FEAT_GDB
+ /*
++ * Callback function, used when data is available on the gdb file descriptor.
++ */
++/* ARGSUSED */
++    static void
++gdb_request_cb (closure, source, id)
++    XtPointer	closure;
++    int		*source;
++    XtInputId	*id;
++{
++    gdb_set_event(gdb, TRUE);
++}
++#endif
++
++/*
+  * End of call-back routines
+  */
+ 
+@@ -2834,7 +2852,13 @@
+ 	desired = (XtIMAll);
+     while ((mask = XtAppPending(app_context)) && (mask & desired)
+ 	    && !vim_is_input_buf_full())
++    {
++#ifdef FEAT_GDB
++	if (gdb_event(gdb))	/* got a gdb event */
++	    return;
++#endif
+ 	XtAppProcessEvent(app_context, desired);
++    }
+ }
+ 
+ /*
+@@ -2863,6 +2887,10 @@
+     static int	    sniff_on = 0;
+     static XtInputId sniff_input_id = 0;
+ #endif
++#ifdef FEAT_GDB
++    static int gdb_on = 0;
++    static XtInputId gdb_input_id = 0;
++#endif
+ 
+     timed_out = FALSE;
+ 
+@@ -2881,6 +2909,25 @@
+     }
+ #endif
+ 
++#ifdef FEAT_GDB
++    /* Remove call back for previous gdb connection */
++    if (! gdb_allowed(gdb) && gdb_on)
++    {
++	if (gdb_input_id)
++	    XtRemoveInput(gdb_input_id);
++	gdb_on = 0;
++    }
++
++    /* A new gdb connection */
++    if (gdb_allowed(gdb) && !gdb_on)
++    {
++	/* Add gdb file descriptor to watch for available data in main loop. */
++	gdb_input_id = XtAppAddInput(app_context, gdb_fd(gdb),
++		     (XtPointer)XtInputReadMask, gdb_request_cb, 0);
++	gdb_on = 1;
++    }
++#endif
++
+     if (wtime > 0)
+ 	timer = XtAppAddTimeOut(app_context, (long_u)wtime, gui_x11_timer_cb,
+ 								  &timed_out);
+@@ -2920,6 +2967,15 @@
+ 		XtRemoveTimeOut(timer);
+ 	    return OK;
+ 	}
++
++#ifdef FEAT_GDB
++	if (wtime != 0L && gdb_allowed(gdb) && gdb_event(gdb))
++	{
++	    if (timer != (XtIntervalId)0 && !timed_out)
++		XtRemoveTimeOut(timer);
++	    return FAIL;
++	}
++#endif
+     }
+     return FAIL;
+ }

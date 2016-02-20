@@ -1,0 +1,13 @@
+--- src/window.c	(.../vendor/vim/current)	(revision 223)
++++ src/window.c	(.../trunk/vim)	(revision 223)
+@@ -6053,6 +6053,10 @@
+ # ifdef FEAT_QUICKFIX
+ 		    || wp->w_p_pvw
+ # endif
++# ifdef FEAT_GDB
++		    /* not counting a gdb window */
++		    || gdb_isbuffer(gdb, wp->w_buffer)
++# endif
+ 	     ) || wp == curwin)
+ 	    ++count;
+     return (count <= 1);

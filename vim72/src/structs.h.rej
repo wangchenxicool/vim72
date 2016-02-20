@@ -1,0 +1,25 @@
+--- src/structs.h	(.../vendor/vim/current)	(revision 223)
++++ src/structs.h	(.../trunk/vim)	(revision 223)
+@@ -577,7 +577,7 @@
+     linenr_T	lnum;		/* line number which has this sign */
+     int		typenr;		/* typenr of sign */
+     signlist_T	*next;		/* next signlist entry */
+-# ifdef FEAT_NETBEANS_INTG
++# if defined(FEAT_NETBEANS_INTG) || defined(FEAT_GDB)
+     signlist_T  *prev;		/* previous entry -- for easy reordering */
+ # endif
+ };
+@@ -589,6 +589,13 @@
+ #define SIGN_TEXT	3
+ #endif
+ 
++#ifdef FEAT_GDB
++typedef struct
++{
++    int dummy;
++} gdb_handle_T;
++#endif
++
+ /*
+  * Argument list: Array of file names.
+  * Used for the global argument list and the argument lists local to a window.

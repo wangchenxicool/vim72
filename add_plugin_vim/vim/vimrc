@@ -1,0 +1,284 @@
+" An example for a vimrc file.
+"
+" Maintainer:	Bram Moolenaar <Bram@vim.org>
+" Last change:	2008 Jul 02
+"
+" To use it, copy it to
+"     for Unix and OS/2:  ~/.vimrc
+"	      for Amiga:  s:.vimrc
+"  for MS-DOS and Win32:  $VIM\_vimrc
+"	    for OpenVMS:  sys$login:.vimrc
+
+" When started as "evim", evim.vim will already have done these settings.
+if v:progname =~? "evim"
+  finish
+endif
+
+"Use Vim settings, rather then Vi settings (much better!).
+"This must be first, because it changes other options as a side effect.
+set nocompatible
+
+" allow backspacing over everything in insert mode
+set backspace=indent,eol,start
+
+if has("vms")
+  set nobackup		" do not keep a backup file, use versions instead
+else
+  set backup		" keep a backup file
+endif
+set history=50		" keep 50 lines of command line history
+set ruler		" show the cursor position all the time
+set showcmd		" display incomplete commands
+set incsearch		" do incremental searching
+
+" For Win32 GUI: remove 't' flag from 'guioptions': no tearoff menu entries
+" let &guioptions = substitute(&guioptions, "t", "", "g")
+
+" Don't use Ex mode, use Q for formatting
+map Q gq
+
+" CTRL-U in insert mode deletes a lot.  Use CTRL-G u to first break undo,
+" so that you can undo CTRL-U after inserting a line break.
+inoremap <C-U> <C-G>u<C-U>
+
+" In many terminal emulators the mouse works just fine, thus enable it.
+if has('mouse')
+  "set mouse=a
+endif
+
+" Switch syntax highlighting on, when the terminal has colors
+" Also switch on highlighting the last used search pattern.
+if &t_Co > 2 || has("gui_running")
+  syntax on
+  set hlsearch
+endif
+
+" Only do this part when compiled with support for autocommands.
+if has("autocmd")
+
+  " Enable file type detection.
+  " Use the default filetype settings, so that mail gets 'tw' set to 72,
+  " 'cindent' is on in C files, etc.
+  " Also load indent files, to automatically do language-dependent indenting.
+  filetype plugin indent on
+
+  " Put these in an autocmd group, so that we can delete them easily.
+  augroup vimrcEx
+  au!
+
+  " For all text files set 'textwidth' to 78 characters.
+  autocmd FileType text setlocal textwidth=780
+
+  " When editing a file, always jump to the last known cursor position.
+  " Don't do it when the position is invalid or when inside an event handler
+  " (happens when dropping a file on gvim).
+  " Also don't do it when the mark is in the first line, that is the default
+  " position when opening a file.
+  autocmd BufReadPost *
+    \ if line("'\"") > 1 && line("'\"") <= line("$") |
+    \   exe "normal! g`\"" |
+    \ endif
+
+  augroup END
+
+else
+
+  set autoindent		" always set autoindenting on
+
+endif " has("autocmd")
+
+" Convenient command to see the difference between the current buffer and the
+" file it was loaded from, thus the changes you made.
+" Only define it when not defined already.
+if !exists(":DiffOrig")
+  command DiffOrig vert new | set bt=nofile | r # | 0d_ | diffthis
+		  \ | wincmd p | diffthis
+endif
+
+
+""""""""""""""""""""""""""""""
+" Tag list (ctags)
+""""""""""""""""""""""""""""""
+let Tlist_Show_One_File = 1
+let Tlist_Exit_OnlyWindow = 1
+let modifieable = 1
+let Tlist_Use_SingleClick = 1
+map <C-F12> :!ctags -R --c++-kinds=+p --fields=+iaS --extra=+q .<CR><CR>
+let Tlist_WinWidth = 35 
+
+""""""""""""""""""""""""""""""
+" lookupfile setting
+""""""""""""""""""""""""""""""
+let g:LookupFile_MinPatLength = 2
+let g:LookupFile_PreserveLastPattern = 0
+let g:LookupFile_PreservePatternHistory = 1
+let g:LookupFile_AlwaysAcceptFirst = 1
+let g:LookupFile_AllowNewFiles = 0
+if filereadable("./filenametags")
+  let g:LookupFile_TagExpr = '"./filenametags"'
+endif
+nmap <silent> <leader>lk :LUTags<cr>
+nmap <silent> <leader>ll :LUBufs<cr>
+nmap <silent> <leader>lw :LUWalk<cr>
+autocmd FileType c,cpp,ino  setl fdm=manual
+
+
+""""""""""""""""""""""""""""""
+" AStyle function
+""""""""""""""""""""""""""""""
+func! CodeFormat()
+	exec "w"
+	if &filetype == 'c'
+		"exec "!astyle --style=ansi -p -d -U -v -n -N %"
+		exec "!astyle --style=java -p -d -U -v -n -N %"
+	elseif &filetype == 'cpp' || &filetype == 'hpp' || &filetype == 'cs' || &filetype == 'ino' || &filetype == 'pde'
+        "exec "!astyle --style=ansi -p -d -U -v -n -N %"
+        exec "!astyle --style=java -p -d -U -v -n -N %"
+	elseif &filetype == 'perl'
+		exec "!astyle --style=gnu --suffix=none %"
+	elseif &filetype == 'py'||&filetype == 'python'
+		exec "r !pydent % > /dev/null 2>&1"
+	elseif &filetype == 'java'
+		exec "!astyle --style=java --suffix=none %"
+	elseif &filetype == 'jsp'
+		exec "!astyle --style=gnu --suffix=none %"
+	elseif &filetype == 'xml'
+		exec "!astyle --style=gnu --suffix=none %"
+	elseif &filetype == 'html'
+		exec "!astyle --style=gnu --suffix=none %"
+	elseif &filetype == 'htm'
+		exec "!astyle --style=gnu --suffix=none %"
+	endif
+	exec "e! %"
+endfunc
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""
+" add by wangchenxicool
+"
+"""""""""""""""""""""""""""""""""""""""""""""""""""""
+syntax on
+"set nu
+set nocompatible
+set columns=80
+set tabstop=4
+set ruler
+set noexpandtab
+"set number
+set ignorecase
+set wrapmargin=15
+set cindent
+set shiftwidth=4
+set nobackup
+set scrolloff=5 
+
+map <F12> :call CodeFormat()<CR>
+map <silent> <F9> :TlistToggle<cr>
+"Fast reloading of the .vimrc
+map <silent> <leader>ss :source /etc/vim/vimrc<cr>
+"Fast editing of .vimrc
+map <silent> <leader>ee :e  /etc/vim/vimrc<cr>
+"When .vimrc is edited, reload it
+map <F2> :bel 20vsplit gdb-variables<cr> 
+"map <silent> <leader>v :bel 20vsplit gdb-variables<cr>
+"map <silent> <leader>V :bel 20vsplit gdb-variables<cr>
+
+
+let Tlist_Auto_Open = 1 
+let Tlist_Auto_Update = 1 
+let Tlist_Hightlight_Tag_On_BufEnter = 1 
+let Tlist_Enable_Fold_Column = 0 
+let Tlist_Process_File_Always = 1 
+let Tlist_Display_Prototype = 0 
+let Tlist_Compact_Format = 1 
+"Set mapleader
+let mapleader = ","
+
+set expandtab  
+set nocindent
+set textwidth=900
+"set wrap 
+set nowrap 
+set pastetoggle=<F8>
+set fillchars=vert:\|,stl:\ ,stlnc:\,
+
+set noic
+
+filetype plugin indent on 
+autocmd! bufwritepost .vimrc source  /etc/vim/vimrc
+
+""""""""""""""""""""""""""""""
+" vimgdb setting
+""""""""""""""""""""""""""""""
+"let g:vimgdb_debug_file = ""
+" mapping
+inoremap <expr> <CR>       pumvisible()?"\<C-Y>":"\<CR>"
+inoremap <expr> <C-J>      pumvisible()?"\<PageDown>\<C-N>\<C-P>":"\<C-X><C-O>"
+inoremap <expr> <C-K>      pumvisible()?"\<PageUp>\<C-P>\<C-N>":"\<C-K>"
+inoremap <expr> <C-U>      pumvisible()?"\<C-E>":"\<C-U>" 
+map <silent> ,g :run macros/gdb_mappings.vim<cr>
+
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" transfer/read and write one block of text between vim sessions
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Usage:
+" `from' session:
+" ma
+" move to end-of-block
+" ,w
+"
+" `to' session:
+" move to where I want block inserted
+" ,r
+"
+if has("unix")
+  nmap ,r :r $HOME/.vimxfer<CR>
+  nmap ,w :'a,.w! $HOME/.vimxfer<CR>
+  vmap ,r c<esc>:r $HOME/.vimxfer<CR>
+  vmap ,w :w! $HOME/.vimxfer<CR>
+else
+  nmap ,r :r c:/.vimxfer<CR>
+  nmap ,w :'a,.w! c:/.vimxfer<CR>
+  vmap ,r c<esc>:r c:/.vimxfer<cr>
+vmap ,w :w! c:/.vimxfer<CR>
+endif
+
+"NERD_commenter setup
+let NERDShutUp=1
+map <c-h> ,c<space> 
+
+" DoxygenToolkit setup
+map fg : Dox<cr> 
+map fn: DoxAuthor<cr>
+map fl: DoxLic<cr>
+
+let g:DoxygenToolkit_authorName="Taogle"
+let g:DoxygenToolkit_licenseTag="My own license\<enter>"
+let g:DoxygenToolkit_undocTag="DOXIGEN_SKIP_BLOCK"
+let g:DoxygenToolkit_briefTag_pre = "@brief\t"
+let g:DoxygenToolkit_paramTag_pre = "@param\t"
+let g:DoxygenToolkit_returnTag = "@return\t"
+let g:DoxygenToolkit_briefTag_funcName = "no"
+let g:DoxygenToolkit_maxFunctionProtoLines = 30 
+
+nnoremap <silent> <F4> :A<CR>
+
+nnoremap <silent> <F3> :Grep<CR>
+
+"set mouse=a
+set selection=exclusive
+set selectmode=mouse,key
+
+set t_ku=OA
+set t_kd=OB
+set t_kr=OC
+set t_kl=OD
+
+"nmap <F8> :TagbarToggle<CR> 
+
+" for arduino
+"autocmd BufRead *.ino set filetype=ino
+"autocmd BufRead *.pde set filetype=ino
+autocmd BufRead *.ino set filetype=cpp
+autocmd BufRead *.pde set filetype=cpp
